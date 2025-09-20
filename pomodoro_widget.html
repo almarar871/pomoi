@@ -1,1 +1,180 @@
-<paste full HTML code here>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pomodoro Widget</title>
+  <style>
+    :root{
+      --bg:url('data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/...'); /* Embedded background image */
+      --tint: rgba(255,255,255,.55);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background: #e9ecef fixed center/cover no-repeat;
+      background-image: var(--bg);
+      display:grid; place-items:center;
+      padding:24px;
+    }
+    .card{
+      width:min(760px,100%);
+      backdrop-filter: blur(8px);
+      background: color-mix(in oklab, white 70%, transparent);
+      border:1px solid rgba(255,255,255,.5);
+      border-radius:var(--radius);
+      box-shadow: 0 20px 40px rgba(0,0,0,.15);
+      overflow:hidden;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 18px; background: rgba(255,255,255,.4);
+    }
+    header h1{margin:0; font-size:16px; font-weight:600}
+    .preset{display:flex; gap:8px}
+    .preset button{
+      border:0; padding:8px 10px; border-radius:10px; cursor:pointer; background:#111; color:#fff;
+      opacity:.9; font-weight:600; font-size:12px
+    }
+    .preset button[data-active="true"]{opacity:1; outline:2px solid #fff}
+
+    .content{display:grid; gap:20px; padding:22px}
+
+    .timer{
+      display:grid; place-items:center; gap:16px;
+    }
+    .ring{
+      width:min(64vmin,420px); aspect-ratio:1/1; position:relative;
+      display:grid; place-items:center;
+    }
+    .ring svg{position:absolute; inset:0}
+    .ring .time{font-size: clamp(40px, 12vmin, 86px); font-weight:800; letter-spacing:1px}
+    .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+    .controls button{
+      border:0; padding:12px 16px; border-radius:14px; cursor:pointer; font-weight:700; font-size:14px;
+      background:#111; color:#fff; opacity:.95
+    }
+    .muted{background:#e6e6e6; color:#111}
+
+    .footer{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:0 4px; color:#333; font-size:12px}
+    .progressText{font-variant-numeric: tabular-nums}
+
+    @media (max-width:520px){
+      header h1{font-size:14px}
+      .preset button{font-size:11px}
+    }
+  </style>
+</head>
+<body>
+  <div class="card" role="region" aria-label="Pomodoro Timer">
+    <header>
+      <h1>Pomodoro Timer</h1>
+      <div class="preset" id="presets" aria-label="Modes">
+        <button data-mins="25">Focus 25</button>
+        <button data-mins="5">Short Break 5</button>
+        <button data-mins="15">Long Break 15</button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="timer">
+        <div class="ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="12" />
+            <circle id="progress" cx="60" cy="60" r="54" fill="none" stroke="#111" stroke-width="12" stroke-linecap="round" 
+              stroke-dasharray="339.292" stroke-dashoffset="339.292" transform="rotate(-90 60 60)" />
+          </svg>
+          <div class="time" id="time">25:00</div>
+        </div>
+        <div class="controls">
+          <button id="start">Start</button>
+          <button id="pause" class="muted">Pause</button>
+          <button id="reset" class="muted">Reset</button>
+          <button id="skip" class="muted">Skip</button>
+        </div>
+        <div class="footer">
+          <div class="progressText"><span id="cycles">0</span> Sessions Done</div>
+          <label><input type="checkbox" id="ding" checked /> Play sound when done</label>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <audio id="bell">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    const timeEl = document.getElementById('time');
+    const progressCircle = document.getElementById('progress');
+    const CIRC = 2 * Math.PI * 54;
+
+    const bell = document.getElementById('bell');
+    const chkDing = document.getElementById('ding');
+    const btnStart = document.getElementById('start');
+    const btnPause = document.getElementById('pause');
+    const btnReset = document.getElementById('reset');
+    const btnSkip = document.getElementById('skip');
+    const presets = document.getElementById('presets');
+
+    let totalSec = 25 * 60;
+    let remain = totalSec;
+    let timer = null;
+    let running = false;
+    let cycles = 0;
+    const cyclesEl = document.getElementById('cycles');
+
+    function fmt(s){
+      const m = Math.floor(s/60); const ss = String(s%60).padStart(2,'0');
+      return `${m}:${ss}`;
+    }
+    function draw(){
+      timeEl.textContent = fmt(remain);
+      const ratio = 1 - (remain/totalSec);
+      progressCircle.style.strokeDashoffset = String(CIRC * (1 - ratio));
+    }
+    function tick(){
+      if(remain>0){
+        remain--; draw();
+      } else {
+        stop();
+        cycles++; cyclesEl.textContent = cycles;
+        if (chkDing.checked){ try{ bell.currentTime=0; bell.play(); }catch(e){} }
+      }
+    }
+    function start(){ if(running) return; running = true; timer = setInterval(tick, 1000); }
+    function stop(){ running = false; if(timer){ clearInterval(timer); timer=null; } }
+    function reset(){ stop(); remain = totalSec; draw(); }
+
+    btnStart.addEventListener('click', start);
+    btnPause.addEventListener('click', stop);
+    btnReset.addEventListener('click', reset);
+    btnSkip.addEventListener('click', () => { remain = 0; tick(); });
+
+    function setActive(btn){
+      [...presets.children].forEach(b=>b.dataset.active = (b===btn));
+    }
+    presets.addEventListener('click', e => {
+      if(e.target.tagName!=='BUTTON') return;
+      const mins = Number(e.target.dataset.mins||25);
+      totalSec = mins*60; remain = totalSec; setActive(e.target); draw();
+    });
+
+    window.addEventListener('beforeunload', () => {
+      localStorage.setItem('pomoLast', JSON.stringify({totalSec, remain, running, cycles}))
+    });
+    (function restore(){
+      try{
+        const s = JSON.parse(localStorage.getItem('pomoLast')||'null');
+        if(!s) return draw();
+        totalSec = s.totalSec||totalSec; remain = s.remain||totalSec; cycles = s.cycles||0; cyclesEl.textContent = cycles; draw();
+        if(s.running){ start(); }
+      }catch{ draw(); }
+    })();
+
+    draw();
+  </script>
+</body>
+</html>
