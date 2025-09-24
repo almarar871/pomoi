@@ -1,0 +1,135 @@
+
+:root{
+  /* To use a custom background image, replace 'none' with:
+     url('data:image/jpeg;base64,PASTE_YOUR_BASE64_HERE')
+     or url('https://your-domain.com/image.jpg')
+  */
+  --bg: none;
+  --tint: rgba(255,255,255,.55);
+  --radius: 22px;
+}
+
+*{ box-sizing: border-box; }
+html, body{ height: 100%; }
+
+body{
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background: #e9ecef fixed center/cover no-repeat;
+  background-image: var(--bg);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card{
+  width: min(760px, 100%);
+  backdrop-filter: blur(8px);
+  background: color-mix(in oklab, white 70%, transparent);
+  border: 1px solid rgba(255,255,255,.5);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 40px rgba(0,0,0,.15);
+  overflow: hidden;
+}
+
+header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(255,255,255,.4);
+}
+
+header h1{
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.preset{ display: flex; gap: 8px; }
+
+.preset button{
+  border: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #111;
+  color: #fff;
+  opacity: .9;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.preset button[data-active="true"]{
+  opacity: 1;
+  outline: 2px solid #fff;
+}
+
+.content{
+  display: grid;
+  gap: 20px;
+  padding: 22px;
+}
+
+.timer{
+  display: grid;
+  place-items: center;
+  gap: 16px;
+}
+
+.ring{
+  width: min(64vmin, 420px);
+  aspect-ratio: 1 / 1;
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.ring svg{ position: absolute; inset: 0; }
+
+.ring .time{
+  font-size: clamp(40px, 12vmin, 86px);
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.controls{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.controls button{
+  border: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  background: #111;
+  color: #fff;
+  opacity: .95;
+}
+
+.muted{
+  background: #e6e6e6;
+  color: #111;
+}
+
+.footer{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+  color: #333;
+  font-size: 12px;
+}
+
+.progressText{ font-variant-numeric: tabular-nums; }
+
+@media (max-width: 520px){
+  header h1{ font-size: 14px; }
+  .preset button{ font-size: 11px; }
+}
